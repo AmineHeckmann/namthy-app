@@ -18,15 +18,23 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install
-          npm install @capacitor/ios
+          npm install @capacitor/cli @capacitor/core @capacitor/ios
+          # On donne les droits d'exécution aux outils locaux
+          chmod +x ./node_modules/.bin/cap
 
-      - name: Sync Capacitor
+      - name: Prepare Web Assets
         run: |
           mkdir -p www
-          echo "<html><body>Namthy App</body></html>" > www/index.html
+          # On crée un fichier de test pour éviter que Capacitor râle
+          echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Namthy</title></head><body><h1>Chargement de Namthy.com...</h1><script>window.location.href="https://namthy.com";</script></body></html>' > www/index.html
+
+      - name: Add and Sync iOS
+        run: |
+          # Si le dossier ios n'existe pas, on l'ajoute. S'il existe, on le met à jour.
+          npx cap add ios || echo "iOS platform already exists"
           npx cap sync ios
 
-      - name: Compile iOS Project
+      - name: Build with Xcode
         run: |
           cd ios/App
           xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Debug CODE_SIGNING_ALLOWED=NO
