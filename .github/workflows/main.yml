@@ -1,4 +1,4 @@
-name: Build Namthy iOS
+name: Build Namthy iOS (Capacitor 8 SPM)
 
 on:
   push:
@@ -13,13 +13,12 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 22 # Capacitor 8 demande absolument une version récente de Node
+          node-version: 22 # Requis pour Capacitor 8
 
-      - name: Install Latest Capacitor Tools
+      - name: Install Dependencies
         run: |
-          # On installe les outils correspondant à votre version
-          npm install @capacitor/cli@8.0.1 @capacitor/core@8.0.1 @capacitor/ios@8.0.1
           npm install
+          npm install @capacitor/cli@8.0.1 @capacitor/core@8.0.1 @capacitor/ios@8.0.1
           chmod -R +x node_modules/.bin
 
       - name: Create Web Folder
@@ -27,22 +26,21 @@ jobs:
           mkdir -p www
           echo '<html><head><meta charset="UTF-8"></head><body><script>window.location.href="https://namthy.com";</script></body></html>' > www/index.html
 
-      - name: Fresh iOS Project Generation
+      - name: Initialize iOS with SPM (Swift Package Manager)
         run: |
-          # On s'assure qu'il n'y a pas de vieux restes de Windows
           rm -rf ios
-          # Capacitor 8 va générer son propre Podfile tout neuf ici
+          # Capacitor 8 crée un projet SPM par défaut (plus besoin de CocoaPods !)
           npx cap add ios
           npx cap sync ios
 
-      - name: Install Pods (Apple Dependencies)
+      - name: Build with Xcode (SPM mode)
         run: |
           cd ios/App
-          # Capacitor 8 gère mieux les pods via cette commande
-          pod install
-
-      - name: Build with Xcode
-        run: |
-          cd ios/App
-          # Debug build pour vérifier que tout fonctionne
-          xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Debug CODE_SIGNING_ALLOWED=NO
+          # On demande à Xcode de résoudre les paquets SPM et de compiler
+          xcodebuild -workspace App.xcworkspace \
+                     -scheme App \
+                     -sdk iphoneos \
+                     -configuration Debug \
+                     -destination 'generic/platform=iOS' \
+                     CODE_SIGNING_ALLOWED=NO \
+                     COMPILER_INDEX_STORE_ENABLE=NO
