@@ -13,47 +13,36 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 22
+          node-version: 22 # Capacitor 8 demande absolument une version récente de Node
 
-      - name: Install Dependencies
+      - name: Install Latest Capacitor Tools
         run: |
+          # On installe les outils correspondant à votre version
+          npm install @capacitor/cli@8.0.1 @capacitor/core@8.0.1 @capacitor/ios@8.0.1
           npm install
-          npm install @capacitor/cli @capacitor/core @capacitor/ios --save
           chmod -R +x node_modules/.bin
 
       - name: Create Web Folder
         run: |
           mkdir -p www
-          echo '<html><body><script>window.location.href="https://namthy.com";</script></body></html>' > www/index.html
+          echo '<html><head><meta charset="UTF-8"></head><body><script>window.location.href="https://namthy.com";</script></body></html>' > www/index.html
 
-      - name: Reset and Add iOS
+      - name: Fresh iOS Project Generation
         run: |
+          # On s'assure qu'il n'y a pas de vieux restes de Windows
           rm -rf ios
+          # Capacitor 8 va générer son propre Podfile tout neuf ici
           npx cap add ios
           npx cap sync ios
 
-      - name: Fix Podfile with Absolute Path
-        run: |
-          # On cherche le chemin réel du fichier helper sur le serveur Mac
-          HELPER_PATH=$(find $(pwd)/node_modules -name pods_helpers.rb | head -n 1)
-          echo "Le helper est ici : $HELPER_PATH"
-          
-          # On écrit le Podfile avec le chemin exact trouvé
-          cat <<EOF > ios/App/Podfile
-          require '$HELPER_PATH'
-          platform :ios, '13.0'
-          use_frameworks!
-          target 'App' do
-            capacitor_pods
-          end
-          EOF
-
-      - name: Install Pods
+      - name: Install Pods (Apple Dependencies)
         run: |
           cd ios/App
+          # Capacitor 8 gère mieux les pods via cette commande
           pod install
 
       - name: Build with Xcode
         run: |
           cd ios/App
+          # Debug build pour vérifier que tout fonctionne
           xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Debug CODE_SIGNING_ALLOWED=NO
