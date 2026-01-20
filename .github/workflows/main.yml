@@ -26,24 +26,27 @@ jobs:
           mkdir -p www
           echo '<html><body><script>window.location.href="https://namthy.com";</script></body></html>' > www/index.html
 
-      - name: Force iOS Structure
+      - name: Reset and Add iOS
         run: |
           rm -rf ios
           npx cap add ios
           npx cap sync ios
 
-      - name: MANUALLY Create Podfile (The "Otherwise" Method)
+      - name: Fix Podfile with Absolute Path
         run: |
-          # On crée le fichier de force avec le contenu standard de Capacitor
+          # On cherche le chemin réel du fichier helper sur le serveur Mac
+          HELPER_PATH=$(find $(pwd)/node_modules -name pods_helpers.rb | head -n 1)
+          echo "Le helper est ici : $HELPER_PATH"
+          
+          # On écrit le Podfile avec le chemin exact trouvé
           cat <<EOF > ios/App/Podfile
-          require_relative '../../node_modules/@capacitor/ios/scripts/pods_helpers'
+          require '$HELPER_PATH'
           platform :ios, '13.0'
           use_frameworks!
           target 'App' do
             capacitor_pods
           end
           EOF
-          echo "Podfile créé manuellement avec succès."
 
       - name: Install Pods
         run: |
@@ -53,6 +56,4 @@ jobs:
       - name: Build with Xcode
         run: |
           cd ios/App
-          # On crée un fichier vide pour Xcode s'il manque
-          touch App/AppDelegate.swift
           xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Debug CODE_SIGNING_ALLOWED=NO
