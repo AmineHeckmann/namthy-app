@@ -24,19 +24,19 @@ jobs:
       - name: Prepare Web Assets
         run: |
           mkdir -p www
-          echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Namthy</title></head><body><h1>Chargement de Namthy.com...</h1><script>window.location.href="https://namthy.com";</script></body></html>' > www/index.html
+          echo '<html><body><script>window.location.href="https://namthy.com";</script></body></html>' > www/index.html
 
-      - name: Capacitor Create/Sync iOS
+      - name: Capacitor Sync
         run: |
-          # On supprime le dossier ios s'il existe pour éviter les conflits et on le recrée proprement
-          rm -rf ios
-          npx cap add ios
+          # Si le dossier ios n'est pas monté, on le crée sur le serveur
+          if [ ! -d "ios" ]; then
+            npx cap add ios
+          fi
           npx cap sync ios
 
       - name: Install Pods
         run: |
           cd ios/App
-          # On installe les dépendances iOS
           pod install
 
       - name: Build with Xcode
