@@ -1,0 +1,9 @@
+{
+  "appId": "com.namthy.app",
+  "appName": "Namthy",
+  "webDir": "www",
+  "server": {
+    "url": "https://namthy.com",
+    "cleartext": true
+  }
+}
