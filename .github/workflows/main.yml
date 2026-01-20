@@ -19,8 +19,8 @@ jobs:
         run: |
           npm install
           npm install @capacitor/cli @capacitor/core @capacitor/ios
-          # Installation des outils Apple (CocoaPods)
-          sudo gem install cocoapods
+          # On force les permissions sur tous les fichiers binaires
+          chmod -R +x node_modules/.bin
 
       - name: Prepare Web Assets
         run: |
@@ -29,15 +29,16 @@ jobs:
 
       - name: Capacitor Sync
         run: |
+          # On utilise "npx" directement
           npx cap add ios || true
           npx cap sync ios
 
-      - name: Install Pods (Dependencies Apple)
+      - name: Install Pods
         run: |
           cd ios/App
           pod install
 
-      - name: Build with Xcode (Debug Mode)
+      - name: Build with Xcode
         run: |
           cd ios/App
           xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Debug CODE_SIGNING_ALLOWED=NO
