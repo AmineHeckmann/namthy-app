@@ -19,22 +19,25 @@ jobs:
         run: |
           npm install
           npm install @capacitor/cli @capacitor/core @capacitor/ios
-          # On donne les droits d'exécution aux outils locaux
-          chmod +x ./node_modules/.bin/cap
+          # Installation des outils Apple (CocoaPods)
+          sudo gem install cocoapods
 
       - name: Prepare Web Assets
         run: |
           mkdir -p www
-          # On crée un fichier de test pour éviter que Capacitor râle
           echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Namthy</title></head><body><h1>Chargement de Namthy.com...</h1><script>window.location.href="https://namthy.com";</script></body></html>' > www/index.html
 
-      - name: Add and Sync iOS
+      - name: Capacitor Sync
         run: |
-          # Si le dossier ios n'existe pas, on l'ajoute. S'il existe, on le met à jour.
-          npx cap add ios || echo "iOS platform already exists"
+          npx cap add ios || true
           npx cap sync ios
 
-      - name: Build with Xcode
+      - name: Install Pods (Dependencies Apple)
+        run: |
+          cd ios/App
+          pod install
+
+      - name: Build with Xcode (Debug Mode)
         run: |
           cd ios/App
           xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Debug CODE_SIGNING_ALLOWED=NO
