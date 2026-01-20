@@ -13,13 +13,12 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 22 # <--- On passe de 18 à 22 ici
 
       - name: Install Dependencies
         run: |
           npm install
           npm install @capacitor/cli @capacitor/core @capacitor/ios
-          # On force les permissions sur tous les fichiers binaires
           chmod -R +x node_modules/.bin
 
       - name: Prepare Web Assets
@@ -29,7 +28,6 @@ jobs:
 
       - name: Capacitor Sync
         run: |
-          # On utilise "npx" directement
           npx cap add ios || true
           npx cap sync ios
 
