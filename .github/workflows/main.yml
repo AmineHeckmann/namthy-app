@@ -13,7 +13,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 22 # Requis pour Capacitor 8
+          node-version: 22
 
       - name: Install Dependencies
         run: |
@@ -26,18 +26,26 @@ jobs:
           mkdir -p www
           echo '<html><head><meta charset="UTF-8"></head><body><script>window.location.href="https://namthy.com";</script></body></html>' > www/index.html
 
-      - name: Initialize iOS with SPM (Swift Package Manager)
+      - name: Initialize iOS
         run: |
           rm -rf ios
-          # Capacitor 8 crée un projet SPM par défaut (plus besoin de CocoaPods !)
           npx cap add ios
           npx cap sync ios
 
-      - name: Build with Xcode (SPM mode)
+      - name: Debug - List ios/App files
+        run: ls -R ios/App
+
+      - name: Build with Xcode
         run: |
           cd ios/App
-          # On demande à Xcode de résoudre les paquets SPM et de compiler
-          xcodebuild -workspace App.xcworkspace \
+          # On vérifie si on utilise un Workspace ou un Projet (Capacitor 8 préfère Project pour SPM)
+          if [ -d "App.xcworkspace" ]; then
+            FILE_TYPE="-workspace App.xcworkspace"
+          else
+            FILE_TYPE="-project App.xcodeproj"
+          fi
+          
+          xcodebuild $FILE_TYPE \
                      -scheme App \
                      -sdk iphoneos \
                      -configuration Debug \
