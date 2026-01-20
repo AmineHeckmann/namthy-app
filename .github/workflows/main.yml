@@ -17,27 +17,42 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          # On installe tout proprement
           npm install
-          npm install @capacitor/cli @capacitor/core @capacitor/ios
-          # On donne les droits aux outils
+          npm install @capacitor/cli @capacitor/core @capacitor/ios --save
           chmod -R +x node_modules/.bin
 
       - name: Create Web Folder
         run: |
           mkdir -p www
-          echo '<html><body><script>window.location.href="https://namthy.com";</script></body></html>' > www/index.html
+          echo '<html><head><title>Namthy</title></head><body><script>window.location.href="https://namthy.com";</script></body></html>' > www/index.html
 
-      - name: Initialize iOS Platform from scratch
+      - name: Force iOS Re-Creation
         run: |
-          # Cette étape crée le dossier ios proprement sur le Mac de GitHub
+          # 1. On supprime toute trace d'iOS pour forcer une reconstruction propre
+          rm -rf ios
+          
+          # 2. On ré-initialise Capacitor avec les bons paramètres
           npx cap add ios
+          
+          # 3. On synchronise (c'est ici que le Podfile est censé apparaître)
           npx cap sync ios
+
+      - name: Debug - List ios/App files
+        run: |
+          # On vérifie ce qui a été créé. Si le Podfile n'est pas là, on le saura.
+          ls -la ios/App
 
       - name: Install Pods
         run: |
-          # Maintenant le Podfile existe forcément car on vient de faire "cap add ios"
           cd ios/App
-          pod install
+          # On vérifie si le Podfile est là avant de lancer pod install
+          if [ -f "Podfile" ]; then
+            pod install
+          else
+            echo "ERREUR : Le Podfile est toujours absent !"
+            exit 1
+          fi
 
       - name: Build with Xcode
         run: |
