@@ -1,0 +1,32 @@
+name: Build Namthy iOS
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm install @capacitor/ios
+
+      - name: Sync Capacitor
+        run: |
+          mkdir -p www
+          echo "<html><body>Namthy App</body></html>" > www/index.html
+          npx cap sync ios
+
+      - name: Compile iOS Project
+        run: |
+          cd ios/App
+          xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Debug CODE_SIGNING_ALLOWED=NO
