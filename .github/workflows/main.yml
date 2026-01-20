@@ -13,7 +13,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 22 # <--- On passe de 18 à 22 ici
+          node-version: 22
 
       - name: Install Dependencies
         run: |
@@ -26,14 +26,17 @@ jobs:
           mkdir -p www
           echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Namthy</title></head><body><h1>Chargement de Namthy.com...</h1><script>window.location.href="https://namthy.com";</script></body></html>' > www/index.html
 
-      - name: Capacitor Sync
+      - name: Capacitor Create/Sync iOS
         run: |
-          npx cap add ios || true
+          # On supprime le dossier ios s'il existe pour éviter les conflits et on le recrée proprement
+          rm -rf ios
+          npx cap add ios
           npx cap sync ios
 
       - name: Install Pods
         run: |
           cd ios/App
+          # On installe les dépendances iOS
           pod install
 
       - name: Build with Xcode
